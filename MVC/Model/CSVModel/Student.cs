@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,5 +32,21 @@ namespace ArchitectureOfInformationSystems.MVC.Model.Entity
         }
         public bool IsStudent { get; set; }
 
+
+        public Student()
+        {
+            Name = string.Empty;
+            LastName = string.Empty;
+            Age = 0;
+            IsStudent = false;
+        }
+
+        public Student(string name, string lastName, int age, bool isStudent)
+        {
+            Name = name;
+            LastName = lastName;
+            Age = age;
+            IsStudent = isStudent;
+        }
     }
 }

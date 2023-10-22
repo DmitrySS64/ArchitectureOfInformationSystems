@@ -10,14 +10,16 @@ namespace ArchitectureOfInformationSystems.MVC.View
 {
     public class View
     {
-        public View() {}
+        public View() { }
 
-        public void Menu(List<string> menu, bool clearView = true) {
+        public void Menu(List<string> menu, string menuName = "Меню", bool clearView = true)
+        {
             if (clearView) Clear();
-            Console.WriteLine("Это меню");
+            Console.WriteLine($"{menuName}");
             int i = 0;
-            foreach (var item in menu) {             
-                Console.Write(i.ToString() + ") ");
+            foreach (var item in menu)
+            {
+                Console.Write(i.ToString() + Constants.Numerator);
                 Console.WriteLine(item.ToString());
                 i++;
             }
@@ -27,7 +29,7 @@ namespace ArchitectureOfInformationSystems.MVC.View
         {
             Clear();
 
-            if (records.Count == 0) 
+            if (records.Count == 0)
             {
                 TextOutput("Нет записей.");
                 return;
@@ -59,26 +61,29 @@ namespace ArchitectureOfInformationSystems.MVC.View
 
 
 
-        public void Error(string s) 
+        public void Error(string s)
         {
-            Console.Write($"\n!!!\t{s}\t!!!\n");
+            Console.Write($"{Constants.Error}{s}\n");
+            Console.ReadKey();
         }
 
         public void Clear()
         {
             Console.Clear();
+            //Massage("");
         }
 
         public void Massage(string str)
         {
-            Console.WriteLine($">>\t{str}");
+            Console.WriteLine($"{Constants.Massage}{str}\n");
         }
 
-        public void TextOutput(string str) {
-            Console.WriteLine(str);
+        public void TextOutput(string str)
+        {
+            Console.WriteLine($"{Constants.Text}{str}");
         }
 
-        public void PrintObjectProperties(object obj, bool clearView = true)
+        public void PrintObjectProperties(object? obj, bool clearView = true)
         {
             if (clearView) Clear();
 
@@ -99,5 +104,69 @@ namespace ArchitectureOfInformationSystems.MVC.View
                 Console.WriteLine($"{property.Name}:\t{value}");
             }
         }
+
+        private void Rejection(string massege = "Некорректный ввод, попробуйте снова")
+        {
+            Console.WriteLine($"{Constants.Rejection}{massege}");
+            Console.ReadKey();
+        }
+
+        public string InputString(string massage = "Введите текст")
+        {
+            string? input;
+
+            while (true)
+            {
+                Massage(massage);
+                input = Console.ReadLine();
+
+                if (!string.IsNullOrWhiteSpace(input)) return input;
+                Rejection();
+            }
+        }
+
+        public bool InputBool(string massage = "Введите 0 - False или 1 - True")
+        {
+            while (true)
+            {
+                Massage(massage);
+
+                if (Int32.TryParse(Console.ReadKey().KeyChar.ToString(), out int x) && (x == 0 || x == 1))
+                {
+                    return x == 1;
+                }
+
+                Rejection();
+            }
+        }
+
+        public int InputInt(string massage = "Введите число")
+        {
+            while (true)
+            {
+                Massage(massage);
+
+                if (Int32.TryParse(Console.ReadLine(), out int x))
+                {
+                    return x;
+                }
+
+                Rejection();
+            }
+        }
+
+
+
     }
+
+    public class Constants
+    {
+        public const string Input = ">>> ",
+            Massage = ">> ",
+            Rejection = "Исключение: ",
+            Error = "Ошибка: ",
+            Text = "> ",
+            Numerator = ") ";
+    }
+    
 }
