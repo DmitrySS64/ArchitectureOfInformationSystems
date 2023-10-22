@@ -18,7 +18,7 @@ namespace ArchitectureOfInformationSystems.MVC.Model
             }
             else if (type == typeof(bool))
             {
-                if (double.TryParse(str, out var value))
+                if (bool.TryParse(str, out var value))
                     return value;
                 else throw new FormatException();
             }
@@ -28,7 +28,9 @@ namespace ArchitectureOfInformationSystems.MVC.Model
                     return value;
                 else throw new FormatException();
             }
-            else return str;
+            else if (type == typeof(string))
+                return str;
+            else throw new Exception("Тип данных не поддерживается");
         }
     }
 }

@@ -25,11 +25,11 @@
         }
 
 
-        public static void AddRow(string path, string[] data, string sep = ";")
-        {
-            string line = string.Join(sep, data);
-            FileWriter.AppendToFile(path, line);
-        }
+        //public static void AddRow(string path, string[] data, string sep = ";")
+        //{
+        //    string line = string.Join(sep, data);
+        //    FileWriter.AppendToFile(path, line);
+        //}
 
         //public static void RemoveRow(string path, int rowIndex)
         //{

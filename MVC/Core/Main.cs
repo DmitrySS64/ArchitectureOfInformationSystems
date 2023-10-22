@@ -13,23 +13,24 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Validator = ArchitectureOfInformationSystems.MVC.Model.Validator;
 
 namespace ArchitectureOfInformationSystems.MVC.Core
 {
-    public class Main
+    public class Main <T> where T : class, new()
     {
-        string filePath = @"D:\VS\ArchitectureOfInformationSystems\Data\data.CSV";
-        CSVModel<Student> model;
+        CSVModel<T> model;
         private View.View view;
         private FunctionList functions;
 
-        public Main() {
+        public Main(string filePath = @"D:\VS\ArchitectureOfInformationSystems\Data\data.CSV")
+        {
             //_ = new MenuHander<Student>(filePath);
             view = new View.View();
 
             try
             {
-                model = new CSVModel<Student>(filePath);
+                model = new CSVModel<T>(filePath);
             }
             catch (Exception e) { 
                 view.Error(e.Message);
@@ -44,8 +45,6 @@ namespace ArchitectureOfInformationSystems.MVC.Core
             functions.AddFunction("Удалить запись из файла", DeleteRecordFromFile);
             functions.AddFunction("Добавить запись в файл", AddAnEntry);
             functions.AddFunction("Выход", Exit);
-
-            functions.ExecuteFunction(0);
             
             SelectFromTheMenu(functions);
         }
@@ -65,7 +64,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         /// </summary
         private void OutputByNumber()
         {
-            List<Student> records = model.GetValues();
+            List<T> records = model.GetValues();
 
             if (records.Count == 0)
             {
@@ -73,10 +72,10 @@ namespace ArchitectureOfInformationSystems.MVC.Core
                 ExitToTheMenu();
                 return;
             }
-            else view.Table(records);
 
             while (true) 
             {
+                view.Table(records);
                 int x = view.InputInt("Введите номер строки");
                 
                 if (x >= 0 && x <= records.Count - 1)
@@ -100,7 +99,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         /// </summary>
         private void WriteData()
         {
-            List<Student> records = new();
+            List<T> records = new();
             PropertyInfo[] properties = typeof(T).GetProperties();
             List<string> menu = new List<string>() { "Число - заменить запись", "+ - добавить новую запись", "- - удалить запись", "save - сохранить записи", "cancel - отмена" };
 
@@ -130,7 +129,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
                     view.Massage("Вы точно хотите сохранить файл?");
                     if (view.InputBool())
                     {
-                        fileManagement.WriteRecordsToFile(records);
+                        model.OverwritingTable(records);
                         cycle = false;
 
                         break;
@@ -158,8 +157,41 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         /// </summary>
         public void DeleteRecordFromFile()
         {
-            List<T> records = DeleteRecord(fileManagement.ReadAllRecords());
-            fileManagement.OverwriteTheFile(records);
+            List<T> records = model.GetValues();
+            if (records.Count == 0)
+            {
+                view.Massage("Нет записей для удаления.");
+                ExitToTheMenu();
+                return;
+            }
+
+            while (true)
+            {
+                view.Table(records);
+                int indexToDelete = -1;
+
+                view.TextOutput("Нажмите на любую клавишу чтобы продолжить (ESC для отмены):");
+                var key = Console.ReadKey();
+                Console.Out.Flush();
+
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    view.Massage("Отменено.");
+                    break;
+                }
+
+                indexToDelete = view.InputInt();
+                if (indexToDelete >= 0 && indexToDelete < records.Count)
+                {
+                    model.RemoveEntry(indexToDelete);
+                    view.Massage("Запись удалена.");
+                    break;
+                }
+                else
+                {
+                    view.Error("Недопустимый номер записи.");
+                }
+            }
             ExitToTheMenu();
         }
 
@@ -177,14 +209,13 @@ namespace ArchitectureOfInformationSystems.MVC.Core
                 return records;
             }
 
-            bool cycle = true;
 
-            while (cycle)
+            while (true)
             {
                 view.Table(records);
                 int indexToDelete = -1;
 
-                view.TextOutput("Введите номер записи для удаления (нажмите ESC для отмены):");
+                view.TextOutput("Нажмите на любую клавишу чтобы продолжить (ESC для отмены):");
                 var key = Console.ReadKey();
                 Console.Out.Flush();
 
@@ -194,10 +225,12 @@ namespace ArchitectureOfInformationSystems.MVC.Core
                     return records;
                 }
 
-                if (int.TryParse(key.KeyChar.ToString(), out indexToDelete) && indexToDelete >= 0 && indexToDelete < records.Count)
+                indexToDelete = view.InputInt();
+                if (indexToDelete >= 0 && indexToDelete < records.Count)
                 {
                     records.RemoveAt(indexToDelete);
                     view.Massage("Запись удалена.");
+                    break;
                 }
                 else
                 {
@@ -214,7 +247,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         private void AddAnEntry()
         {
             T? record = CreateNewRecord();
-            if (!EqualityComparer<T>.Default.Equals(record, default(T))) fileManagement.WriteRecordsToFile(new List<T>() { record });
+            if (!EqualityComparer<T>.Default.Equals(record, default(T))) model.AddValues(new List<T>() { record });
             ExitToTheMenu();
         }
 
@@ -223,7 +256,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        private bool IsObjectFullyInitialized(T obj)
+        private bool IsObjectFullyInitialized<T>(T obj)
         {
             Type type = typeof(T);
             PropertyInfo[] properties = type.GetProperties();
@@ -250,7 +283,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         {
             view.Massage("Нажмите на любую клавишу чтобы выйти в меню");
             Console.ReadKey();
-            functions.ExecuteFunction(0);
+            SelectFromTheMenu(functions);
         }
 
         /// <summary>
@@ -302,12 +335,12 @@ namespace ArchitectureOfInformationSystems.MVC.Core
 
             PropertyInfo[] properties = typeof(T).GetProperties();
 
-            Dictionary<Type, Delegate> inputMethods = new()
-            {
-                { typeof(string), new Input<string>(view.InputString) },
-                { typeof(int), new Input<int>(view.InputInt) },
-                { typeof(bool), new Input<bool>(view.InputBool) }
-            };
+            //Dictionary<Type, Delegate> inputMethods = new()
+            //{
+            //    { typeof(string), new Input<string>(view.InputString) },
+            //    { typeof(int), new Input<int>(view.InputInt) },
+            //    { typeof(bool), new Input<bool>(view.InputBool) }
+            //};
 
             List<string> menu = new List<string>(properties.Select(p => p.Name));
 
@@ -328,21 +361,13 @@ namespace ArchitectureOfInformationSystems.MVC.Core
                 {
                     PropertyInfo property = properties[input];
 
+                    var value = Validator.ConvertToType(property.PropertyType, view.InputString($"Введите {property.Name}"));
 
-
-                    if (inputMethods.TryGetValue(property.PropertyType, out var inputMethod))
+                    try
                     {
-                        try
-                        {
-                            property.SetValue(newRecord, inputMethod(property.Name));
-                        }
-                        catch (Exception ex) { view.Error(ex.Message); }
-
+                        property.SetValue(newRecord, value);
                     }
-                    else
-                    {
-                        view.Error("Тип данных не поддерживается.");
-                    }
+                    catch (Exception ex) { view.Error(ex.Message); }
                 }
                 else if (input == menu.Count - 2)
                 {
@@ -375,6 +400,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
 
 
     }
+
 
     #region Function List
     /// <summary>

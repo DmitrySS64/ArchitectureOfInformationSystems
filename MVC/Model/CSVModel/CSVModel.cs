@@ -10,7 +10,7 @@ namespace ArchitectureOfInformationSystems.MVC.Model.CSVModel
     public class CSVModel<T> : IModel<T> where T : class, new()
     {
         private readonly string pathFile;
-        private readonly List<T> table;
+        private List<T> table;
 
         public CSVModel(string pathFile)
         {
@@ -47,6 +47,14 @@ namespace ArchitectureOfInformationSystems.MVC.Model.CSVModel
                 SaveTable();
         }
 
+        public void AddValues(List<T> values, bool NeedSave = true)
+        {
+            foreach (var value in values)
+                table.Add(value);
+            if (NeedSave)
+                SaveTable();
+        }
+
         private T TryCreateEntry(IEnumerable<string> entryFields)
         {
             T newEntry = new();
@@ -61,6 +69,7 @@ namespace ArchitectureOfInformationSystems.MVC.Model.CSVModel
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 throw new Exception($"Не удалось преобразовать поле {properties[i].Name} в тип {properties[i].PropertyType}\n", ex);
             }
             return newEntry;
@@ -98,6 +107,13 @@ namespace ArchitectureOfInformationSystems.MVC.Model.CSVModel
             }
             catch { throw; }
             return table;
+        }
+
+        public void OverwritingTable(List<T> values)
+        {
+            table.Clear();
+            table = new List<T>(values);
+            SaveTable();
         }
 
         private void SaveTable()
