@@ -1,0 +1,9 @@
+{
+  "models": [
+    {
+      "name": "Student",
+      "model": "CSVModel",
+      "location": "D:\\VS\\GitHub\\ArchitectureOfInformationSystems\\Server\\Data\\data.csv"
+    }
+  ]
+}

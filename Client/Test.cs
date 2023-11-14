@@ -14,8 +14,37 @@ namespace Client
 
         public static void Main()
         {
-            udpClient = new UdpClient(8002);
-            Console.WriteLine("Клиент работает");
+            int port = 8002;
+            udpClient = null;
+
+            try
+            {
+                udpClient = new UdpClient(port);
+            }
+            catch (SocketException)
+            {
+                for (int i = 1; i <= 10; i++) // Попробовать 10 соседних портов
+                {
+                    try
+                    {
+                        udpClient = new UdpClient(port + i);
+                        port = port + i;
+                        break; // Удалось найти свободный порт
+                    }
+                    catch (SocketException)
+                    {
+                        continue; // Этот порт тоже занят, пробуем следующий
+                    }
+                }
+                if (udpClient == null)
+                {
+                    // Не удалось найти свободный порт
+                    Console.WriteLine("Не удалось найти свободный порт.");
+                    return;
+                }
+            }
+
+            OutputMassege("Клиент работает");
             while (true)
             {
                 try
@@ -24,7 +53,7 @@ namespace Client
                     ReceiveMessage();
                     Console.ReadKey();
                 }
-                catch (Exception ex) { Console.WriteLine(ex.ToString()); Console.ReadKey(); }
+                catch (Exception ex) { OutputError(ex.ToString()); Console.ReadKey(); }
             }
         }
 
@@ -35,21 +64,31 @@ namespace Client
             {
                 byte[] data = udpClient.Receive(ref remoteIp);
                 string message = Encoding.Unicode.GetString(data);
-                Console.WriteLine("Ответ от сервера: {0}", message);
+                OutputMassege($"Ответ от сервера: {message}");
             }
-            catch (Exception e) { Console.WriteLine(e.Message); }
+            catch (Exception e) { OutputError(e.Message); }
         }
 
         private static void SendMessage()
         {                
             try
             {
-                Console.Write("Введите сообщение: ");
+                OutputMassege("Введите сообщение: ");
                 string message = Console.ReadLine();
                 byte[] data = Encoding.Unicode.GetBytes(message);
                 udpClient.Send(data, data.Length, "127.0.0.1", 8001);
             }
             catch (Exception e) { Console.WriteLine(e.ToString()); }
+        }
+
+        private static void OutputMassege(string massege)
+        {
+            Console.WriteLine($"{massege}");
+        }
+
+        private static void OutputError(string massege)
+        {
+            Console.WriteLine($"{massege}");
         }
     }
 }

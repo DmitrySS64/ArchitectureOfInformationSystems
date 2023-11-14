@@ -1,17 +1,23 @@
-﻿using ArchitectureOfInformationSystems.MVC.Model.CSVModel;
+﻿using Server.MVC.Model.CSVModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-using Validator = ArchitectureOfInformationSystems.MVC.Model.Validator;
+using Validator = Server.MVC.Model.Validator;
 
-namespace ArchitectureOfInformationSystems.MVC.Core
+namespace Server.MVC.Core
 {
+    public class Menu
+    {
+        
+
+    }
+
     public class Main <T> where T : class, new()
     {
         CSVModel<T> model;
         private View.View view;
         private FunctionList functions;
-
-        public Main(string filePath = @"D:\VS\ArchitectureOfInformationSystems\Data\data.csv")
+        //D:\VS\GitHub\ArchitectureOfInformationSystems\Server\Data\data.csv
+        public Main(string filePath = @"D:\VS\GitHub\ArchitectureOfInformationSystems\Server\Data\data.csv")
         {
             //_ = new MenuHander<Student>(filePath);
             view = new View.View();
@@ -385,7 +391,6 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         }
 
         public delegate T Input<T>(string prompt);
-
 
     }
 

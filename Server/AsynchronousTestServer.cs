@@ -13,18 +13,21 @@ namespace Server
     {
         //Семафор
         private static ManualResetEvent allDone = new ManualResetEvent(false);
-        private UdpClient udpClient_S;
+        private UdpClient udpServer;
         private int port;
+
+        List<ClientManager> clients;
 
         //Логирование
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public AsynchronousTestServer(int _port)
         {
-            udpClient_S = new UdpClient(_port);
-            this.port = _port;
-            Console.WriteLine("Асинхронный сервер работает");
+            udpServer = new UdpClient(this.port = _port);
+            OutputInfo("Асинхронный сервер работает");
+
         }
+
         public void StartListenAsync()
         {
             while (true)
@@ -32,7 +35,7 @@ namespace Server
                 allDone.Reset();
                 //принимает данные с узла в аснихронном режиме
                 //(делегат, пользовательский объект)
-                udpClient_S.BeginReceive(RequestCallback, udpClient_S);
+                udpServer.BeginReceive(RequestCallback, udpServer);
                 //ожидает .Set()
                 allDone.WaitOne();
             }
@@ -42,24 +45,37 @@ namespace Server
         {
             allDone.Set();
             var listener = (UdpClient)ar.AsyncState;
-            var ep = (IPEndPoint)udpClient_S.Client.LocalEndPoint;
+            var ep = (IPEndPoint)udpServer.Client.LocalEndPoint;
             //завершение .BeginReceive() 
             var res = listener.EndReceive(ar, ref ep);
+
+
+
             string data = Encoding.Unicode.GetString(res);
-            Console.WriteLine("Сообщение клиента: {0}", data);
-            byte[] z = Encoding.Unicode.GetBytes("Ваше сообщение получено");
-            udpClient_S.SendAsync(z, z.Length, ep);
+            OutputInfo($"Сообщение клиента {ep.Port}: {data}");
+
+            string response = "данные получены";
+
+            byte[] z = Encoding.Unicode.GetBytes(response);
+            udpServer.SendAsync(z, z.Length, ep);
+        }
+
+        private string HandleRequest(string request)
+        {
+            // Ваш код для обработки запроса и вызова методов Main<T>
+            // ...
+            return null;
         }
 
         private void OutputInfo(string str)
         {
-            Console.WriteLine(str);
+            //Console.WriteLine(str);
             logger.Info(str);
         }
 
         private void OutputError(string str)
         {
-            Console.WriteLine($"Ошибка: {str}");
+            //Console.WriteLine($"Ошибка: {str}");
             logger.Error(str);
         }
     }

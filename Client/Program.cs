@@ -4,3 +4,8 @@ using Client;
 Console.WriteLine("Hello, World!");
 
 Test.Main();
+
+//new TCPClient(5050);
+
+
+

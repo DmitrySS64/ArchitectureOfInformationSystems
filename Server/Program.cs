@@ -1,9 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Server;
 
-Console.WriteLine("Hello, World!");
 
 //TestServer.Main();
+
+//TCPServer server = new(5050);
+//server.Start();
 
 AsynchronousTestServer asynchronousTestServer = new(8001);
 asynchronousTestServer.StartListenAsync();
