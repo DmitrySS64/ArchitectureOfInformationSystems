@@ -1,31 +1,40 @@
-﻿using NLog;
+﻿using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Server
 {
     class AsynchronousTestServer
     {
-        //Семафор
+         //Семафор
         private static ManualResetEvent allDone = new ManualResetEvent(false);
         private UdpClient udpServer;
         private int port;
+        //private List<client> clients;
 
-        List<ClientManager> clients;
+        //List<ClientManager> clients;
+
+        CommandRepository commandRepository;
+        Dictionary<string, Delegate> functions = new Dictionary<string, Delegate>();
 
         //Логирование
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public AsynchronousTestServer(int _port)
         {
+            //clients = new List<client>();
+            commandRepository = new CommandRepository();
             udpServer = new UdpClient(this.port = _port);
             OutputInfo("Асинхронный сервер работает");
 
+            functions["DisplayingAllEntries"] = commandRepository.DisplayingAllEntries;
         }
 
         public void StartListenAsync()
@@ -46,25 +55,48 @@ namespace Server
             allDone.Set();
             var listener = (UdpClient)ar.AsyncState;
             var ep = (IPEndPoint)udpServer.Client.LocalEndPoint;
+
             //завершение .BeginReceive() 
+
             var res = listener.EndReceive(ar, ref ep);
-
-
-
             string data = Encoding.Unicode.GetString(res);
+            
             OutputInfo($"Сообщение клиента {ep.Port}: {data}");
 
-            string response = "данные получены";
+            var result = MessageHandler(data);
 
-            byte[] z = Encoding.Unicode.GetBytes(response);
+            byte[] z = Encoding.Unicode.GetBytes(result);
             udpServer.SendAsync(z, z.Length, ep);
         }
 
-        private string HandleRequest(string request)
+        private string MessageHandler(string request)
         {
-            // Ваш код для обработки запроса и вызова методов Main<T>
-            // ...
-            return null;
+            string[] data = request.Split(' ');
+
+            string func_str = data[0];
+
+            string output = "";
+
+            if(functions.ContainsKey(func_str))
+            {
+                if(data.Length == 1) {
+                    output = (string)functions[func_str].DynamicInvoke();
+                }
+                else
+                {
+                    Type type = Type.GetType(data[1]);
+                    var arg = JsonConvert.DeserializeObject(data[2], type);
+                    output = (string)functions[func_str].DynamicInvoke(arg);
+                }
+                return output;
+            }
+
+            output = "Список функций\n";
+            foreach(var func in functions.Keys ) {
+                output += func + "\n";
+            }
+
+            return output;
         }
 
         private void OutputInfo(string str)
@@ -78,5 +110,14 @@ namespace Server
             //Console.WriteLine($"Ошибка: {str}");
             logger.Error(str);
         }
+
+        //private class client
+        //{
+        //    public IPEndPoint endPoint;
+        //    public delegate string FuncDelegate(params object[] parametrs);
+        //    public FuncDelegate func;
+        //    public Type[] ParameterTypes { get; set; }
+        //}
+
     }
 }

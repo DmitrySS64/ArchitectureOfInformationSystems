@@ -59,8 +59,6 @@ namespace ArchitectureOfInformationSystems.MVC.View
             }
         }
 
-
-
         public void Error(string s)
         {
             Console.Write($"{Constants.Error}{s}\n");
@@ -154,9 +152,6 @@ namespace ArchitectureOfInformationSystems.MVC.View
                 Rejection();
             }
         }
-
-
-
     }
 
     public class Constants

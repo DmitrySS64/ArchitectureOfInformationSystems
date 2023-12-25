@@ -8,8 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.2.5" />
     <PackageReference Include="NLog.Schema" Version="5.2.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ArchitectureOfInformationSystems\ArchitectureOfInformationSystems.csproj" />
+    <ProjectReference Include="..\NetControler\NetController.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

@@ -10,9 +10,11 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         CSVModel<T> model;
         private View.View view;
         private FunctionList functions;
+        string filePath = Directory.GetCurrentDirectory() + "data.csv";
 
-        public Main(string filePath = @"D:\VS\ArchitectureOfInformationSystems\Data\data.csv")
+        public Main(string _filePath = "")
         {
+            if (_filePath != "") filePath = _filePath;
             //_ = new MenuHander<Student>(filePath);
             view = new View.View();
 
@@ -33,7 +35,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
             functions.AddFunction("Удалить запись из файла", DeleteRecordFromFile);
             functions.AddFunction("Добавить запись в файл", AddAnEntry);
             functions.AddFunction("Выход", Exit);
-            
+
             SelectFromTheMenu(functions);
         }
 
@@ -45,6 +47,42 @@ namespace ArchitectureOfInformationSystems.MVC.Core
         {
             view.Table(model.GetValues());
             ExitToTheMenu();
+        }
+
+        public string OutputAllValuesInString()
+        {
+            string output = "";
+            List<T> records = model.GetValues();
+
+            if (records.Count == 0)
+            {
+                output += "Нет записей.";
+                return output;
+            }
+
+            Type type = typeof(T);
+            PropertyInfo[] properties = type.GetProperties();
+
+            // Вывод заголовков столбцов
+            foreach (var property in properties)
+            {
+                output += ($"{property.Name}\t");
+            }
+            output += "\n";
+
+            int i = -1;
+            foreach (var record in records)
+            {
+                i++;
+                output += ($"{i})\t");
+                foreach (var property in properties)
+                {
+                    object value = property.GetValue(record);
+                    output += ($"{value}\t");
+                }
+                output += "\n";
+            }
+            return output;
         }
 
         /// <summary>
@@ -79,6 +117,51 @@ namespace ArchitectureOfInformationSystems.MVC.Core
             };
 
             ExitToTheMenu();
+        }
+
+        public string OutputByNumberInString(int index)
+        {
+            string data = "";
+
+            List<T> records = model.GetValues();
+
+            if (records.Count == 0)
+            {
+                data += ("Нет записей.");
+                return data;
+            }
+
+            if (index >= 0 && index <= records.Count - 1)
+            {
+                data = ConvertObjToString(records[index]);
+            }
+            else
+            {
+                data += ("Недопустимый номер записи или некорректный ввод. Попробуйте снова.");
+            }
+            return data;
+        }
+
+        private string ConvertObjToString(object obj)
+        {
+            string result = "";
+            if (obj == null)
+            {
+                result+=("Объект пуст");
+                return result;
+            }
+
+            Type type = obj.GetType();
+            PropertyInfo[] properties = type.GetProperties();
+
+            result+=($"Object of type {type.Name}:");
+
+            foreach (PropertyInfo property in properties)
+            {
+                object value = property.GetValue(obj);
+                result += ($"{property.Name}:\t{value}\n");
+            }
+            return result;
         }
 
         //Перезапись данных в файл !!!!!!!!!!!!!
@@ -239,6 +322,11 @@ namespace ArchitectureOfInformationSystems.MVC.Core
             ExitToTheMenu();
         }
 
+        public bool AddAnEntry(object[] objects)
+        {
+            return true;
+        }
+
         /// <summary>
         /// Проверка на целосность параметров
         /// </summary>
@@ -384,7 +472,7 @@ namespace ArchitectureOfInformationSystems.MVC.Core
             return newRecord;
         }
 
-        public delegate T Input<T>(string prompt);
+        //public delegate T Input<T>(string prompt);
 
 
     }

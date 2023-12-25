@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ArchitectureOfInformationSystems.MVC.Model.Entity
+﻿namespace NetController.Models
 {
-    public class Student
+    class Student
     {
         public string Name { get; set; }
         public string LastName { get; set; }
@@ -31,5 +23,6 @@ namespace ArchitectureOfInformationSystems.MVC.Model.Entity
             Age = age;
             IsStudent = isStudent;
         }
+
     }
 }

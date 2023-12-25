@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using NetController;
 
 namespace Client
 {
@@ -16,6 +19,12 @@ namespace Client
         {
             int port = 8002;
             udpClient = null;
+
+            TransmittedData transmittedData = new TransmittedData();
+
+            ConsoleKey input;
+            string func;
+            string args;
 
             try
             {
@@ -39,17 +48,20 @@ namespace Client
                 if (udpClient == null)
                 {
                     // Не удалось найти свободный порт
-                    Console.WriteLine("Не удалось найти свободный порт.");
+                    OutputError("Не удалось найти свободный порт.");
                     return;
                 }
             }
-
             OutputMassege("Клиент работает");
+
+
+
             while (true)
             {
                 try
                 {
-                    SendMessage();
+                    
+                    //SendMessage();
                     ReceiveMessage();
                     Console.ReadKey();
                 }
@@ -57,24 +69,31 @@ namespace Client
             }
         }
 
-        private static void ReceiveMessage()
-        { 
-            IPEndPoint remoteIp = (IPEndPoint)udpClient.Client.LocalEndPoint;
-            try
-            {
-                byte[] data = udpClient.Receive(ref remoteIp);
-                string message = Encoding.Unicode.GetString(data);
-                OutputMassege($"Ответ от сервера: {message}");
-            }
-            catch (Exception e) { OutputError(e.Message); }
-        }
+        //private static void ReceiveMessage()
+        //{ 
+        //    IPEndPoint remoteIp = (IPEndPoint)udpClient.Client.LocalEndPoint;
+        //    try
+        //    {
+        //        byte[] data = udpClient.Receive(ref remoteIp);
+        //        string message = Encoding.Unicode.GetString(data);
 
-        private static void SendMessage()
-        {                
+        //        try
+        //        {
+        //            dynamic dynamicObject = DeserializeDynamic(message);
+
+        //            if (dynamicObject is ExpandoObject) PrintTable(dynamicObject);
+        //        }
+        //        catch {
+        //            OutputMassege($"Ответ от сервера: {message}");
+        //        }
+        //    }
+        //    catch (Exception e) { OutputError(e.Message); }
+        //}
+
+        private static void SendMessage(string message)
+        {
             try
             {
-                OutputMassege("Введите сообщение: ");
-                string message = Console.ReadLine();
                 byte[] data = Encoding.Unicode.GetBytes(message);
                 udpClient.Send(data, data.Length, "127.0.0.1", 8001);
             }
@@ -89,6 +108,39 @@ namespace Client
         private static void OutputError(string massege)
         {
             Console.WriteLine($"{massege}");
+        }
+
+        static dynamic DeserializeDynamic(string json) => JsonSerializer.Deserialize<ExpandoObject>(json);
+
+        static void PrintTable(ExpandoObject expando)
+        {
+            foreach (var property in expando)
+            {
+                Console.WriteLine($"{property.Key}: {property.Value}");
+            }
+        }
+
+        private static TransmittedData ReceiveMessage()
+        {
+            IPEndPoint remoteIp = (IPEndPoint)udpClient.Client.LocalEndPoint;
+            TransmittedData status = new();
+            // allDone.Set();
+            try
+            {
+                byte[] data = udpClient.Receive(ref remoteIp);
+                string decoded = Encoding.UTF8.GetString(data);
+                status = JsonSerializer.Deserialize<TransmittedData>(decoded);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return status;
+        }
+
+        private void GetStructurs()
+        {
+
         }
     }
 }
