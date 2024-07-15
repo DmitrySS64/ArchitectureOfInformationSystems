@@ -525,7 +525,6 @@ namespace ArchitectureOfInformationSystems.MVC.Core
             Functions.RemoveAt(functionIndex);
         }
 
-
         public void ExecuteFunction(int index)
         {
             if (index >= 0 && index < Functions.Count)

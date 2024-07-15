@@ -5,32 +5,62 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Client.View
+namespace Client
 {
-    public class View
+    public static class View
     {
-        public View() { }
-
-        public void Menu(List<string> menu, string menuName = "Меню", bool clearView = true)
+        public static int MainMenu(string? fileName, List<string> menu, bool clearView = true)
         {
-            if (clearView) Clear();
+            if (clearView) Output.Clear();
+            int countVar = menu.Count;
+            if (fileName == null || fileName == "")
+            {
+                fileName = "Не указан";
+                countVar = 1;
+            }
+            Output.Text($"FileName : {fileName}");
+            for (int i = 0; i < countVar; i++)
+            {
+                Output.ListItem(i, menu[i]);
+            }
+
+            return 0;
+        }
+
+        public static void Menu(List<string> menu, string menuName = "Меню", bool clearView = true)
+        {
+            if (clearView) Output.Clear();
             Console.WriteLine($"{menuName}");
             int i = 0;
             foreach (var item in menu)
             {
-                Console.Write(i.ToString() + Constants.Numerator);
-                Console.WriteLine(item.ToString());
+                Output.ListItem(i, item.ToString());
                 i++;
             }
         }
 
-        public void Table<T>(List<T> records)
+        public static void DisplayTable(dynamic instance)
         {
-            Clear();
+            PropertyInfo[] properties = instance.GetType().GetProperties();
+
+            // Выводим заголовки
+            Console.WriteLine("| " + string.Join(" | ", properties.Select(p => p.Name)) + " |");
+
+            // Выводим разделительную строку
+            Console.WriteLine("|" + new string('-', properties.Length * 4 - 1) + "|");
+
+            // Выводим значения
+            Console.WriteLine("| " + string.Join(" | ", properties.Select(p => p.GetValue(instance))) + " |");
+
+        }
+
+        public static void Table<T>(List<T> records)
+        {
+            Output.Clear();
 
             if (records.Count == 0)
             {
-                TextOutput("Нет записей.");
+                Output.Text("Нет записей.");
                 return;
             }
 
@@ -59,113 +89,119 @@ namespace Client.View
         }
 
 
-
-        public void Error(string s)
+        public static void PrintObjectProperties(object? obj, bool clearView = true)
         {
-            Console.Write($"{Constants.Error}{s}\n");
-            Console.ReadKey();
-        }
-
-        public void Clear()
-        {
-            Console.Clear();
-            //Massage("");
-        }
-
-        public void Massage(string str)
-        {
-            Console.WriteLine($"{Constants.Massage}{str}\n");
-        }
-
-        public void TextOutput(string str)
-        {
-            Console.WriteLine($"{Constants.Text}{str}");
-        }
-
-        public void PrintObjectProperties(object? obj, bool clearView = true)
-        {
-            if (clearView) Clear();
+            if (clearView) Output.Clear();
 
             if (obj == null)
             {
-                TextOutput("Объект пуст");
+                Output.Text("Объект пуст");
                 return;
             }
 
             Type type = obj.GetType();
             PropertyInfo[] properties = type.GetProperties();
 
-            Console.WriteLine($"Object of type {type.Name}:");
+            Output.Text($"Object of type {type.Name}:");
 
             foreach (PropertyInfo property in properties)
             {
                 object value = property.GetValue(obj);
-                Console.WriteLine($"{property.Name}:\t{value}");
+                Output.Parameter(property.Name, value.ToString());
+                //Console.WriteLine($"{property.Name}:\t{value}");
             }
         }
+    }
 
-        private void Rejection(string massege = "Некорректный ввод, попробуйте снова")
+    public static class Output
+    {
+        public const string InputPrefix = ">>> ",
+            MassagePrefix = ">> ",
+            RejectionPrefix = "Исключение: ",
+            ErrorPrefix = "Ошибка: ",
+            TextPrefix = "> ",
+            NumeratorPrefix = ") ",
+            ParameterPrefix = " : ";
+
+        public static void Error(string s)
         {
-            Console.WriteLine($"{Constants.Rejection}{massege}");
+            Console.Write($"{ErrorPrefix}{s}\n");
             Console.ReadKey();
         }
 
-        public string InputString(string massage = "Введите текст")
+        public static void Rejection(string massege = "Некорректный ввод, попробуйте снова")
+        {
+            Console.WriteLine($"{RejectionPrefix}{massege}");
+            Console.ReadKey();
+        }
+
+        public static void Clear() =>
+            Console.Clear();
+
+        public static void Massage(string str) =>
+            Console.WriteLine($"{MassagePrefix}{str}\n");
+
+        public static void Text(string str) =>
+            Console.WriteLine($"{TextPrefix}{str}");
+
+        public static void ListItem(int index, string value) =>
+            Console.WriteLine(index + NumeratorPrefix + value);
+
+        public static void Parameter(string name, string value) =>
+            Console.WriteLine($"{name}{ParameterPrefix}{value}");
+    }
+
+
+    public static class Input
+    {
+        public static string InputString(string massage = "Введите текст")
         {
             string? input;
 
             while (true)
             {
-                Massage(massage);
+                Output.Massage(massage);
                 input = Console.ReadLine();
 
                 if (!string.IsNullOrWhiteSpace(input)) return input;
-                Rejection();
+                Output.Rejection();
             }
         }
 
-        public bool InputBool(string massage = "Введите 0 - False или 1 - True")
+        public static bool InputBool(string massage = "Введите 0 - False или 1 - True")
         {
             while (true)
             {
-                Massage(massage);
+                Output.Massage(massage);
 
                 if (Int32.TryParse(Console.ReadKey().KeyChar.ToString(), out int x) && (x == 0 || x == 1))
                 {
                     return x == 1;
                 }
 
-                Rejection();
+                Output.Rejection();
             }
         }
 
-        public int InputInt(string massage = "Введите число")
+        public static int InputInt(string massage = "Введите число")
         {
             while (true)
             {
-                Massage(massage);
+                Output.Massage(massage);
 
                 if (Int32.TryParse(Console.ReadLine(), out int x))
                 {
                     return x;
                 }
 
-                Rejection();
+                Output.Rejection();
             }
         }
 
+        public static void Expect(string message)
+        {
 
-
+        }
     }
 
-    public class Constants
-    {
-        public const string Input = ">>> ",
-            Massage = ">> ",
-            Rejection = "Исключение: ",
-            Error = "Ошибка: ",
-            Text = "> ",
-            Numerator = ") ";
-    }
-    
 }

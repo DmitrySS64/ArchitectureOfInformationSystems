@@ -37,6 +37,17 @@ namespace NetController
         }
     }
 
+    public static class Commands
+    {
+        public const string GetFileNames = "GetFileNames",
+            View = "View",
+            Find = "Find",
+            Add = "Add",
+            Edit = "Edit",
+            Delete = "Delete",
+            Load = "Load";
+    }
+
     class Controller
     {
 
